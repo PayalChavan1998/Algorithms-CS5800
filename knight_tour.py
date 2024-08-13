@@ -49,7 +49,7 @@ class KnightTour:
         self.board[r][c] = move_i
         self.path.append((r, c))
         if self.show_backtracking:
-            visualizer.update_board(self.board, self.path)
+            visualizer.update_board(self.board, self.path, False)
 
         if move_i == self.rows * self.cols - 1:  # Base Case 
             return True     # All cells are visited
@@ -63,10 +63,10 @@ class KnightTour:
                 return True
 
         # Backtrack: reset cell and remove from path
+        if self.show_backtracking:
+            visualizer.update_board(self.board, self.path, True)
         self.board[r][c] = -1
         self.path.pop()
-        if self.show_backtracking:
-            visualizer.update_board(self.board, self.path)
         return False
 
     # Start the knight's tour
@@ -101,11 +101,13 @@ class KnightTourVisualizer(QMainWindow):
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         self.grid_layout = QGridLayout(self.central_widget)
+        self.originalStyle = "QLabel { background-color : black; border: 1px solid black; font-size: 24px;}"
 
         for i in range(self.knight_tour.rows):
             for j in range(self.knight_tour.cols):
                 self.labels[i][j].setAlignment(Qt.AlignCenter)
-                self.labels[i][j].setStyleSheet("border: 1px solid black; font-size: 22px;")
+                # self.labels[i][j].setStyleSheet("border: 1px solid black; font-size: 24px;")
+                self.labels[i][j].setStyleSheet(self.originalStyle)
                 self.grid_layout.addWidget(self.labels[i][j], i, j)
 
         # If not showing backtracking, use a timer for step-by-step visualization
@@ -116,18 +118,31 @@ class KnightTourVisualizer(QMainWindow):
             self.timer.start(500)   # Update every 500 milliseconds
 
     # Update the board with the knight's moves
-    def update_board(self, board, path):
+    def update_board(self, board, path, do_backtrack):
         # Update labels based on the current board state
         for i in range(self.knight_tour.rows):
             for j in range(self.knight_tour.cols):
-                if board[i][j] == -1:
+                cell_value = board[i][j]
+                if cell_value == -1:
                     self.labels[i][j].setText("")
+                    self.labels[i][j].setStyleSheet(self.originalStyle)
                 else:
-                    self.labels[i][j].setText(str(board[i][j]))
+                    self.labels[i][j].setStyleSheet("QLabel { background-color : grey; border: 1px solid black; font-size: 24px;}")
+                    self.labels[i][j].setText(f"<b>{cell_value}</b>")
+
+        if do_backtrack and path:
+            last_r, last_c = path[-1]
+            self.labels[last_r][last_c].setStyleSheet("QLabel { background-color : red; border: 1px solid black; font-size: 24px;}")
+            QTimer.singleShot(600, lambda: self.reset_cell_color(last_r, last_c))
+
         QApplication.processEvents()
-        time.sleep(0.3)
-    
-    
+        wait_time = 0.6 if do_backtrack else 0.3
+        time.sleep(wait_time)
+
+    def reset_cell_color(self, r, c):
+        self.labels[r][c].setStyleSheet(self.originalStyle)
+
+
     def update_board_tour(self):
          # Visualize the knight's path step by step
         if self.move_i < len(self.knight_tour.path):
