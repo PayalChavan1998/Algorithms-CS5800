@@ -1,10 +1,20 @@
+
+# Project Knight Tour Problem using Backtracking Timing Analysis
+# August 15, 2024
+# Team Members
+# Anjali Haryani
+# Payal Chavan
+# Yuexin Ma
+# Mengyuan Liu
+
 '''
-Given an (N * M) chessboard, determine if there exists a sequence of moves for a knight such that it visits every square on the board exactly once. 
+Given an (N * M) chessboard, determine if there exists a sequence of moves for a knight such that it visits every square on the board exactly once.
 If such a sequence exists, provide the sequence of moves. If no such sequence exists, return an error message.
 '''
 
 import time # This module provides various time-related functions.
 import sys  # Import the sys module for system-specific parameters and functions
+import matplotlib.pyplot as plt # Import matplotlib to show timing analysis
 
 # Import necessary classes and functions from PyQt5.QtWidgets
 from PyQt5.QtWidgets import (
@@ -16,7 +26,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,   # arranges widgets vertically, one below the other
     QSpinBox,      # A widget that allows users to input an integer value by either typing or using up/down arrows
     QPushButton,   # A clickable button widget
-    QCheckBox,     # A widget that represents a checkbox 
+    QCheckBox,     # A widget that represents a checkbox
     QDialog,       # A base class for creating custom dialog windows
     QHBoxLayout,   # arranges widgets horizontally
     QMessageBox    # Dialog for showing messages to the user
@@ -44,14 +54,14 @@ class KnightTour:
         return 0 <= r < self.rows and 0 <= c < self.cols and self.board[r][c] == -1
 
     # Recursive function to solve the Knight's Tour problem
-    def solve(self, r, c, move_i, visualizer):    
+    def solve(self, r, c, move_i, visualizer):
         # Place the knight on the board and update the path
         self.board[r][c] = move_i
         self.path.append((r, c))
         if self.show_backtracking:
             visualizer.update_board(self.board, self.path, False)
 
-        if move_i == self.rows * self.cols - 1:  # Base Case 
+        if move_i == self.rows * self.cols - 1:  # Base Case
             return True     # All cells are visited
 
         # Exploring Moves
@@ -79,7 +89,7 @@ class KnightTour:
             print("No solution exists.")
             QMessageBox.information(None, "Knight's Tour", "No path found")
             return False
-    
+
     # Print the board
     def print_board(self):
         for row in self.board:
@@ -214,37 +224,25 @@ class InputDialog(QDialog):
         self.show_backtracking = self.backtracking_checkbox.isChecked()
         super().accept()        # Call the base class accept method (closes the dialog)
 
+
+def timing_analysis():
+    sizes = [(5, 5), (6, 6), (7, 7), (8, 8)]
+    times = []
+
+    for size in sizes:
+        rows, cols = size
+        kt = KnightTour(rows, cols)
+        start_time = time.time()
+        kt.start_tour()
+        end_time = time.time()
+        times.append(end_time - start_time)
+        print(f"Board size {rows}x{cols} took {end_time - start_time:.2f} seconds")
+
+    plt.plot([rows * cols for rows, cols in sizes], times, marker='o')
+    plt.title("Timing Analysis of Knight's Tour Algorithm")
+    plt.xlabel("Board Size (Number of Cells)")
+    plt.ylabel("Time (seconds)")
+    plt.show()
+
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    dialog = InputDialog()      # Create an instance of the InputDialog
-    if dialog.exec_() == QDialog.Accepted:
-        # If the user clicked "OK" in the dialog, retrieve the chosen values
-        rows = dialog.rows
-        cols = dialog.cols
-        show_backtracking = dialog.show_backtracking
-
-        # Print the chosen settings
-        print("Running Knight's Tour with board size:", rows, "x", cols, " and show_backtracking:", show_backtracking)
-
-        # Create a KnightTour instance with the chosen settings
-        kt = KnightTour(rows, cols, show_backtracking)
-
-        # Create a visualizer for the knight's tour
-        visualizer = KnightTourVisualizer(kt)
-        visualizer.show()
-
-        # Start the knight's tour and check if a path was found
-        path_found = kt.start_tour(visualizer)
-
-        if not path_found:
-            # close the KnightTourVisualizer window
-            visualizer.close()
-
-            # quit the application
-            QApplication.quit()
-            sys.exit()
-        else:
-            # wait till user closes the QMainWindow
-            sys.exit(app.exec_())
-
+    timing_analysis()
